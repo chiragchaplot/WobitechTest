@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		05BF57CB2F458A6E00084459 /* iOS_Developer_Take_Home Assessment.docx in Resources */ = {isa = PBXBuildFile; fileRef = 05BF57CA2F458A6E00084459 /* iOS_Developer_Take_Home Assessment.docx */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		05BF57AE2F458A4800084459 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +31,7 @@
 		05BF579F2F458A4600084459 /* Wobitech Test.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Wobitech Test.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		05BF57AD2F458A4800084459 /* Wobitech TestTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Wobitech TestTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		05BF57B72F458A4800084459 /* Wobitech TestUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Wobitech TestUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		05BF57CA2F458A6E00084459 /* iOS_Developer_Take_Home Assessment.docx */ = {isa = PBXFileReference; lastKnownFileType = file; path = "iOS_Developer_Take_Home Assessment.docx"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -75,6 +80,7 @@
 		05BF57962F458A4600084459 = {
 			isa = PBXGroup;
 			children = (
+				05BF57CA2F458A6E00084459 /* iOS_Developer_Take_Home Assessment.docx */,
 				05BF57A12F458A4600084459 /* Wobitech Test */,
 				05BF57B02F458A4800084459 /* Wobitech TestTests */,
 				05BF57BA2F458A4800084459 /* Wobitech TestUITests */,
@@ -212,6 +218,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				05BF57CB2F458A6E00084459 /* iOS_Developer_Take_Home Assessment.docx in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
