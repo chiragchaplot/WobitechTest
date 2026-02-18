@@ -1,0 +1,25 @@
+# SwiftLint configuration
+# Keep this conservative to avoid noisy failures, while still enabling auto-fix.
+
+# Paths to ignore
+excluded:
+  - Carthage
+  - Pods
+  - build
+  - DerivedData
+
+# Allow autocorrect where supported
+
+# Rules that are commonly noisy in small codebases
+# (We keep the default rule set active otherwise.)
+disabled_rules:
+  - trailing_whitespace
+
+# Tweak line length a bit to reduce churn
+line_length:
+  warning: 140
+  error: 200
+
+# Optional: opt-in rules you might want later
+# opt_in_rules:
+#   - empty_count
