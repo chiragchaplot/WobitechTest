@@ -10,6 +10,7 @@ struct OrderList {
 }
 
 struct Order {
+  var id: String
   var status: OrderStatus
   var name: String
   var startDate: Date
