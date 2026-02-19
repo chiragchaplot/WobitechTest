@@ -14,11 +14,11 @@ struct OrderDetailsView: View {
 
   var body: some View {
     stateContent
-      .navigationTitle("Order Details")
+      .navigationTitle(L10n.text("orderDetails.navigation.title"))
       .onAppear(perform: viewModel.onAppear)
       .onDisappear(perform: viewModel.onDisappear)
       .alert(
-        "Unable to fetch order detail",
+        L10n.text("orderDetails.alert.error.title"),
         isPresented: Binding(
           get: { viewModel.state == .error },
           set: { isPresented in
@@ -28,10 +28,10 @@ struct OrderDetailsView: View {
           }
         )
       ) {
-        Button("Try Again") {
+        Button(L10n.text("common.button.tryAgain")) {
           viewModel.retryFetch()
         }
-        Button("Cancel", role: .cancel) {}
+        Button(L10n.text("common.button.cancel"), role: .cancel) {}
       }
   }
 
@@ -51,24 +51,24 @@ struct OrderDetailsView: View {
 
   private var successfulStateView: some View {
     List {
-      row("Order ID", value: viewModel.displayModel.orderID)
-      row("Order", value: viewModel.displayModel.orderName)
-      row("From Name", value: viewModel.displayModel.fromNameText)
-      row("Final Delivery Name", value: viewModel.displayModel.finalDeliveryNameText)
-      row("From Address", value: viewModel.displayModel.fromAddressText)
-      row("Final Address", value: viewModel.displayModel.finalAddressText)
-      row("Status", value: viewModel.displayModel.statusText)
-      row("Start Date", value: viewModel.displayModel.startDateText)
+      row(L10n.text("orderDetails.row.orderId"), value: viewModel.displayModel.orderID)
+      row(L10n.text("orderDetails.row.order"), value: viewModel.displayModel.orderName)
+      row(L10n.text("orderDetails.row.fromName"), value: viewModel.displayModel.fromNameText)
+      row(L10n.text("orderDetails.row.finalDeliveryName"), value: viewModel.displayModel.finalDeliveryNameText)
+      row(L10n.text("orderDetails.row.fromAddress"), value: viewModel.displayModel.fromAddressText)
+      row(L10n.text("orderDetails.row.finalAddress"), value: viewModel.displayModel.finalAddressText)
+      row(L10n.text("orderDetails.row.status"), value: viewModel.displayModel.statusText)
+      row(L10n.text("orderDetails.row.startDate"), value: viewModel.displayModel.startDateText)
 
       if viewModel.isOrderDelivered {
-        row("Delivered At", value: viewModel.displayModel.deliveredAtText)
+        row(L10n.text("orderDetails.row.deliveredAt"), value: viewModel.displayModel.deliveredAtText)
         deliveryImageView
       } else {
-        row("Estimated Delivery", value: viewModel.displayModel.estimatedDeliveryText)
-        row("Last Location", value: viewModel.displayModel.lastLocationText)
+        row(L10n.text("orderDetails.row.estimatedDelivery"), value: viewModel.displayModel.estimatedDeliveryText)
+        row(L10n.text("orderDetails.row.lastLocation"), value: viewModel.displayModel.lastLocationText)
       }
       if viewModel.isOrderPendingPickUp {
-        row("Driver", value: viewModel.displayModel.driverNameText)
+        row(L10n.text("orderDetails.row.driver"), value: viewModel.displayModel.driverNameText)
       }
     }
   }
@@ -79,7 +79,7 @@ struct OrderDetailsView: View {
   }
 
   private var noDataStateView: some View {
-    Text("Loading Data...")
+    Text(L10n.text("common.loadingData"))
       .foregroundStyle(.secondary)
       .frame(maxWidth: .infinity, maxHeight: .infinity)
   }

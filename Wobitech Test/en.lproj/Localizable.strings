@@ -1,0 +1,36 @@
+"common.notAvailable" = "N/A";
+"common.loadingData" = "Loading Data...";
+"common.button.tryAgain" = "Try Again";
+"common.button.cancel" = "Cancel";
+
+"home.tab.orders" = "Orders";
+"home.tab.details" = "Details";
+
+"orders.alert.error.title" = "Error";
+"orders.alert.error.message" = "Please try again.";
+"orders.filter.all" = "All";
+"orders.filter.prefix" = "Filter";
+"orders.empty.message" = "No orders found.";
+"orders.status.pending" = "Pending";
+"orders.status.inTransit" = "In Transit";
+"orders.status.delivered" = "Delivered";
+"orders.title.base" = "Orders";
+"orders.title.pendingPickUp" = "Orders - Pending Pick Up";
+"orders.title.inTransit" = "Orders - In Transit";
+"orders.title.delivered" = "Orders - Delivered";
+
+"orderDetails.navigation.title" = "Order Details";
+"orderDetails.alert.error.title" = "Unable to fetch order detail";
+"orderDetails.row.orderId" = "Order ID";
+"orderDetails.row.order" = "Order";
+"orderDetails.row.fromName" = "From Name";
+"orderDetails.row.finalDeliveryName" = "Final Delivery Name";
+"orderDetails.row.fromAddress" = "From Address";
+"orderDetails.row.finalAddress" = "Final Address";
+"orderDetails.row.status" = "Status";
+"orderDetails.row.startDate" = "Start Date";
+"orderDetails.row.deliveredAt" = "Delivered At";
+"orderDetails.row.estimatedDelivery" = "Estimated Delivery";
+"orderDetails.row.lastLocation" = "Last Location";
+"orderDetails.row.driver" = "Driver";
+"orderDetails.image.delivered.accessibilityLabel" = "Delivered package photo";

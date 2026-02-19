@@ -19,7 +19,7 @@ struct OrdersListView: View {
     }
     .onAppear(perform: viewModel.onAppear)
     .alert(
-      "Error",
+      L10n.text("orders.alert.error.title"),
       isPresented: Binding(
         get: { viewModel.state == .error },
         set: { isPresented in
@@ -29,12 +29,12 @@ struct OrdersListView: View {
         }
       )
     ) {
-      Button("Try Again") {
+      Button(L10n.text("common.button.tryAgain")) {
         viewModel.retryFetch()
       }
-      Button("Cancel", role: .cancel) {}
+      Button(L10n.text("common.button.cancel"), role: .cancel) {}
     } message: {
-      Text("Please try again.")
+      Text(L10n.text("orders.alert.error.message"))
     }
   }
 
@@ -71,7 +71,7 @@ struct OrdersListView: View {
   }
 
   private var noDataStateView: some View {
-    Text("Loading Data...")
+    Text(viewModel.noDataText)
       .foregroundStyle(.secondary)
       .frame(maxWidth: .infinity, maxHeight: .infinity)
   }
@@ -102,7 +102,7 @@ private struct OrdersFilterMenu: View {
   var body: some View {
     Menu {
       OrdersFilterMenuButton(
-        title: "All",
+        title: L10n.text("orders.filter.all"),
         isSelected: viewModel.isShowingAllFilters
       ) {
         viewModel.updateFilter(nil)
@@ -117,7 +117,10 @@ private struct OrdersFilterMenu: View {
         }
       }
     } label: {
-      Label("Filter: \(viewModel.filterButtonTitle)", systemImage: "line.3.horizontal.decrease.circle")
+      Label(
+        "\(L10n.text("orders.filter.prefix")): \(viewModel.filterButtonTitle)",
+        systemImage: "line.3.horizontal.decrease.circle"
+      )
     }
   }
 }

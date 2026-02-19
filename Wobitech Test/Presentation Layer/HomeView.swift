@@ -15,12 +15,12 @@ struct HomeView: View {
     TabView {
       OrdersListView(viewModel: ordersListViewModel)
         .tabItem {
-          Label("Orders", systemImage: "list.bullet")
+          Label(L10n.text("home.tab.orders"), systemImage: "list.bullet")
         }
 
 //      OrderDetailsView(viewModel: orderDetailsViewModel)
 //        .tabItem {
-//          Label("Details", systemImage: "doc.text.magnifyingglass")
+//          Label(L10n.text("home.tab.details"), systemImage: "doc.text.magnifyingglass")
 //        }
     }
   }

@@ -79,8 +79,14 @@ final class OrdersListViewModel {
   }
 
   var filterButtonTitle: String {
-    guard let selectedStatusFilter else { return "All" }
+    guard let selectedStatusFilter else {
+      return L10n.text("orders.filter.all")
+    }
     return statusDisplayTitle(selectedStatusFilter)
+  }
+
+  var noDataText: String {
+    L10n.text("orders.empty.message")
   }
 
   var screenTitle: String {
@@ -125,29 +131,31 @@ final class OrdersListViewModel {
   func statusDisplayTitle(_ status: OrderStatus) -> String {
     switch status {
     case .PENDING:
-      "Pending"
+      L10n.text("orders.status.pending")
     case .INTRANSIT:
-      "In Transit"
+      L10n.text("orders.status.inTransit")
     case .DELIVERED:
-      "Delivered"
+      L10n.text("orders.status.delivered")
     }
   }
 
   private var baseScreenTitle: String {
-    guard let selectedStatusFilter else { return "Orders" }
+    guard let selectedStatusFilter else {
+      return L10n.text("orders.title.base")
+    }
     switch selectedStatusFilter {
     case .PENDING:
-      return "Orders - Pending Pick Up"
+      return L10n.text("orders.title.pendingPickUp")
     case .INTRANSIT:
-      return "Orders - In Transit"
+      return L10n.text("orders.title.inTransit")
     case .DELIVERED:
-      return "Orders - Delivered"
+      return L10n.text("orders.title.delivered")
     }
   }
 
   private func processOrders(fetchedOrders: OrderList) {
-    state = .successful
     orders = fetchedOrders.orders
+    state = orders.isEmpty ? .noData : .successful
   }
 
   private func handleErrors() {

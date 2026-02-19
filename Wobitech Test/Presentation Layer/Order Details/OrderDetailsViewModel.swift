@@ -41,19 +41,20 @@ final class OrderDetailsViewModel {
     self.orderDetailService = orderDetailService
     state = .noData
     orderStatus = nil
+    let naText = L10n.text("common.notAvailable")
     displayModel = OrderDetailsDisplayModel(
       orderID: orderID,
-      orderName: "N/A",
-      fromNameText: "N/A",
-      finalDeliveryNameText: "N/A",
-      fromAddressText: "N/A",
-      finalAddressText: "N/A",
-      statusText: "N/A",
-      startDateText: "N/A",
-      estimatedDeliveryText: "N/A",
-      deliveredAtText: "N/A",
-      lastLocationText: "N/A",
-      driverNameText: "N/A",
+      orderName: naText,
+      fromNameText: naText,
+      finalDeliveryNameText: naText,
+      fromAddressText: naText,
+      finalAddressText: naText,
+      statusText: naText,
+      startDateText: naText,
+      estimatedDeliveryText: naText,
+      deliveredAtText: naText,
+      lastLocationText: naText,
+      driverNameText: naText,
       deliveryPhoto: nil
     )
   }
@@ -146,25 +147,26 @@ final class OrderDetailsViewModel {
   }
 
   private func mapToDisplayModel(_ detail: OrderDetail) -> OrderDetailsDisplayModel {
-    OrderDetailsDisplayModel(
+    let naText = L10n.text("common.notAvailable")
+    return OrderDetailsDisplayModel(
       orderID: detail.id,
       orderName: detail.name,
-      fromNameText: detail.fromName.isEmpty ? "N/A" : detail.fromName,
-      finalDeliveryNameText: detail.finalDeliveryName.isEmpty ? "N/A" : detail.finalDeliveryName,
-      fromAddressText: detail.fromAddress.isEmpty ? "N/A" : detail.fromAddress,
-      finalAddressText: detail.finalAddress.isEmpty ? "N/A" : detail.finalAddress,
+      fromNameText: detail.fromName.isEmpty ? naText : detail.fromName,
+      finalDeliveryNameText: detail.finalDeliveryName.isEmpty ? naText : detail.finalDeliveryName,
+      fromAddressText: detail.fromAddress.isEmpty ? naText : detail.fromAddress,
+      finalAddressText: detail.finalAddress.isEmpty ? naText : detail.finalAddress,
       statusText: detail.status.rawValue,
       startDateText: detail.startDate.formatted(date: .abbreviated, time: .shortened),
       estimatedDeliveryText: formatted(detail.estimatedDeliveryDate),
       deliveredAtText: formatted(detail.deliveryDate),
-      lastLocationText: detail.lastLocation.isEmpty ? "N/A" : detail.lastLocation,
-      driverNameText: detail.driverName.isEmpty ? "N/A" : detail.driverName,
+      lastLocationText: detail.lastLocation.isEmpty ? naText : detail.lastLocation,
+      driverNameText: detail.driverName.isEmpty ? naText : detail.driverName,
       deliveryPhoto: detail.deliveryPhoto
     )
   }
 
   private func formatted(_ date: Date?) -> String {
-    guard let date else { return "N/A" }
+    guard let date else { return L10n.text("common.notAvailable") }
     return date.formatted(date: .abbreviated, time: .shortened)
   }
 }

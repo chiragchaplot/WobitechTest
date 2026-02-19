@@ -13,6 +13,6 @@ struct OrderDeliveredImageView: View {
       .scaledToFill()
       .aspectRatio(1, contentMode: .fit)
       .clipShape(RoundedRectangle(cornerRadius: 12))
-      .accessibilityLabel("Delivered package photo")
+      .accessibilityLabel(L10n.text("orderDetails.image.delivered.accessibilityLabel"))
   }
 }

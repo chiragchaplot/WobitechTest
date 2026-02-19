@@ -62,6 +62,25 @@ struct OrdersListViewModelTests {
   }
 
   @Test
+  func onAppearTransitionsToNoDataWhenServiceReturnsEmptyOrders() async {
+    let service = MockGetOrderListService(
+      outcomes: [
+        .success(OrderList(orders: []))
+      ]
+    )
+    let viewModel = OrdersListViewModel(orderListService: service, user: "Chirag")
+
+    viewModel.onAppear()
+    #expect([ScreenState.noData, .loading].contains(viewModel.state))
+
+    await waitForState(.noData, in: viewModel)
+
+    #expect(viewModel.state == .noData)
+    #expect(viewModel.orders.isEmpty)
+    #expect(viewModel.noDataText == "No orders found.")
+  }
+
+  @Test
   func dismissErrorMovesStateBackToNoData() async {
     let service = MockGetOrderListService(outcomes: [.failure(.requestFailed(500))])
     let viewModel = OrdersListViewModel(orderListService: service, user: "Chirag")
