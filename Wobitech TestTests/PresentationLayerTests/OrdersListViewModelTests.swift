@@ -167,10 +167,10 @@ struct OrdersListViewModelTests {
     #expect(viewModel.screenTitle == "Orders - In Transit (1)")
 
     viewModel.updateFilter(.PENDING)
-    #expect(viewModel.screenTitle == "Pending Pick Up (1)")
+    #expect(viewModel.screenTitle == "Orders - Pending Pick Up (1)")
 
     viewModel.updateFilter(.DELIVERED)
-    #expect(viewModel.screenTitle == "Delivered (1)")
+    #expect(viewModel.screenTitle == "Orders - Delivered (1)")
   }
 
   @Test

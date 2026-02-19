@@ -15,6 +15,10 @@ enum NetworkError: Error {
 
 protocol NetworkServiceProtocol {
   func execute<T: Decodable>(_ request: APIRequest) async throws -> T
+  func stream<T: Decodable>(
+    _ request: APIRequest,
+    pollingInterval: TimeInterval
+  ) async -> AsyncThrowingStream<T, Error>
 }
 
 actor NetworkService: NetworkServiceProtocol {
@@ -46,6 +50,31 @@ actor NetworkService: NetworkServiceProtocol {
       return try decoder.decode(T.self, from: data)
     } catch {
       throw NetworkError.decodingError
+    }
+  }
+
+  func stream<T: Decodable>(
+    _ request: APIRequest,
+    pollingInterval: TimeInterval = 10
+  ) async -> AsyncThrowingStream<T, Error> {
+    AsyncThrowingStream { continuation in
+      let task = Task {
+        while !Task.isCancelled {
+          do {
+            let response: T = try await execute(request)
+            continuation.yield(response)
+            let sanitizedInterval = max(pollingInterval, 0.01)
+            try await Task.sleep(for: .seconds(sanitizedInterval))
+          } catch {
+            continuation.finish(throwing: error)
+            return
+          }
+        }
+      }
+
+      continuation.onTermination = { _ in
+        task.cancel()
+      }
     }
   }
 }

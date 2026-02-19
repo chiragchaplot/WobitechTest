@@ -132,6 +132,43 @@ struct NetworkServiceTests {
       Issue.record("Expected NetworkError.decodingError, got \(error)")
     }
   }
+
+  @Test
+  func streamYieldsValuesForPollingRequest() async {
+    let payload = """
+    {
+      "value": "ok"
+    }
+    """.data(using: .utf8)!
+
+    let service = makeService { request in
+      let response = HTTPURLResponse(
+        url: request.url ?? URL(string: "https://api.wobitech.com.au")!,
+        statusCode: 200,
+        httpVersion: nil,
+        headerFields: nil
+      )!
+      return (.http(response), payload)
+    }
+
+    let stream: AsyncThrowingStream<MockResponse, Error> = await service.stream(
+      MockAPIRequest(path: "orders"),
+      pollingInterval: 0.01
+    )
+
+    var values: [String] = []
+
+    do {
+      for try await response in stream.prefix(2) {
+        values.append(response.value)
+      }
+    } catch {
+      Issue.record("Expected stream to yield values, got error: \(error)")
+    }
+
+    #expect(values.count == 2)
+    #expect(values.allSatisfy { $0 == "ok" })
+  }
 }
 
 private extension NetworkServiceTests {
