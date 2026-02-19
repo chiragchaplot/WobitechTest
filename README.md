@@ -18,12 +18,12 @@ Dependency injection is used throughout (network service, use cases, and view mo
 
 ## Data And State Flow
 - Screen state is explicitly modeled through `ScreenState` (`.noData`, `.loading`, `.successful`, `.error`).
-- Orders list flow:
+- ### Orders list flow:
 1. View triggers `onAppear`.
 2. ViewModel requests data from `GetOrderListUseCase`.
 3. State transitions are explicit (`loading -> successful/error/noData`).
 4. UI renders state-based content.
-- Order detail flow:
+- ### Order detail flow:
 1. Details screen loads initial detail via `GetOrderDetailUseCase`.
 2. For non-delivered states, updates are observed through `AsyncThrowingStream` polling.
 3. UI is driven by mapped display model (`OrderDetailsDisplayModel`) rather than raw transport model.
