@@ -4,6 +4,10 @@ import Observation
 struct OrderDetailsDisplayModel {
   var orderID: String
   var orderName: String
+  var fromNameText: String
+  var finalDeliveryNameText: String
+  var fromAddressText: String
+  var finalAddressText: String
   var statusText: String
   var startDateText: String
   var estimatedDeliveryText: String
@@ -39,6 +43,10 @@ final class OrderDetailsViewModel {
     displayModel = OrderDetailsDisplayModel(
       orderID: orderID,
       orderName: "N/A",
+      fromNameText: "N/A",
+      finalDeliveryNameText: "N/A",
+      fromAddressText: "N/A",
+      finalAddressText: "N/A",
       statusText: "N/A",
       startDateText: "N/A",
       estimatedDeliveryText: "N/A",
@@ -91,6 +99,10 @@ final class OrderDetailsViewModel {
     OrderDetailsDisplayModel(
       orderID: detail.id,
       orderName: detail.name,
+      fromNameText: detail.fromName.isEmpty ? "N/A" : detail.fromName,
+      finalDeliveryNameText: detail.finalDeliveryName.isEmpty ? "N/A" : detail.finalDeliveryName,
+      fromAddressText: detail.fromAddress.isEmpty ? "N/A" : detail.fromAddress,
+      finalAddressText: detail.finalAddress.isEmpty ? "N/A" : detail.finalAddress,
       statusText: detail.status.rawValue,
       startDateText: detail.startDate.formatted(date: .abbreviated, time: .shortened),
       estimatedDeliveryText: formatted(detail.estimatedDeliveryDate),
