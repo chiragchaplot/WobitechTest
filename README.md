@@ -1,154 +1,124 @@
 # Wobitech Test
 
-## Project Overview
-The app uses a clean layered structure:
+## Architecture
+I used a hybrid of Clean Architecture + SOLID + MVVM because of time and clarity.
 
-- `Presentation Layer`: SwiftUI views + `@Observable` view models
-- `Domain Layer`: use-case/service actors
-- `Data Layer`: request models and shared network service
+- `Presentation Layer`: SwiftUI views and `@Observable` view models.
+- `Domain Layer`: use cases/services with business rules.
+- `Data Layer`: API request/response models and network abstraction.
 
-Entry point:
+Why this approach:
 
-- `Wobitech Test/Wobitech_TestApp.swift`
+- clean separation of concerns
+- modular structure for safe extension
+- strong testability
+- predictable data flow
 
-## Current User Flows
+Dependency injection is used throughout (network service, use cases, and view model dependencies) so behavior can be replaced with mocks in tests.
 
-### Orders List
-Files:
+## Data And State Flow
+- Screen state is explicitly modeled through `ScreenState` (`.noData`, `.loading`, `.successful`, `.error`).
+- Orders list flow:
+1. View triggers `onAppear`.
+2. ViewModel requests data from `GetOrderListUseCase`.
+3. State transitions are explicit (`loading -> successful/error/noData`).
+4. UI renders state-based content.
+- Order detail flow:
+1. Details screen loads initial detail via `GetOrderDetailUseCase`.
+2. For non-delivered states, updates are observed through `AsyncThrowingStream` polling.
+3. UI is driven by mapped display model (`OrderDetailsDisplayModel`) rather than raw transport model.
 
-- `Wobitech Test/Presentation Layer/Orders List/OrdersListView.swift`
-- `Wobitech Test/Presentation Layer/Orders List/OrdersListViewModel.swift`
+## Domain vs UI Models
+The UI is not directly coupled to raw API/domain models.
 
-Behavior:
+- Domain/data entities are mapped into UI-ready values in the ViewModel.
+- Presentation renders from `OrderDetailsDisplayModel`.
+- If API contracts change, most changes are isolated to Data + Domain + mapping, instead of forcing view rewrites.
 
-- Fetches orders on first appear
-- Supports pull-to-refresh
-- Supports filter menu: `All`, `Pending`, `In Transit`, `Delivered`
-- Dynamic title includes filter and count
-- Screen state handling:
-  - `.loading`: progress view
-  - `.successful`: list + navigation to order details
-  - `.noData`: `Loading Data...`
-  - `.error`: alert with retry
+This keeps the UI domain-driven while reducing tight transport-model coupling.
 
-### Order Details
-Files:
+## Testing Strategy
+I followed a TDD/test-alongside mindset while building.
 
-- `Wobitech Test/Presentation Layer/Order Details/OrderDetailsView.swift`
-- `Wobitech Test/Presentation Layer/Order Details/OrderDetailsViewModel.swift`
-- `Wobitech Test/Presentation Layer/Order Details/OrderDeliveredImageView.swift`
+- Unit tests are present across Data, Domain, and Presentation layers.
+- Mocks are used to control success, failure, delay, and retries deterministically.
+- State transition testing is a major focus:
+  - loading -> success
+  - loading -> error
+  - error -> retry -> success
+  - empty -> noData
 
-Behavior:
-
-- List-to-details navigation passes only `orderID`
-- View model fetches detail through `GetOrderDetailUseCase`
-- UI is driven by `OrderDetailsDisplayModel`
-- Displays:
-  - Order ID, Order name
-  - From name, final delivery name
-  - From address, final address
-  - Status, start date
-  - Estimated delivery or delivered-at (based on status)
-  - Last location (for non-delivered)
-  - Driver (for pending pickup)
-- If status is delivered, shows delivered image from asset `deliveredPhoto` using a square reusable view
-
-## Services and Data
-
-### Order List Service
-File:
-
-- `Wobitech Test/Domain Layer/GetOrderListService.swift`
-
-Behavior:
-
-- Simulates API delay (`3` seconds)
-- Returns mock data when `shouldSucceed = true`
-- Throws `NetworkError.requestFailed(500)` when `shouldSucceed = false`
-- Caches latest fetched list for detail fallback
-
-### Order Detail Service
-File:
-
-- `Wobitech Test/Domain Layer/GetOrderDetailService.swift`
-
-Related request/models:
-
-- `Wobitech Test/Data Layer/APIRequests/OrderDetail/OrderDetailRequest.swift`
-- `Wobitech Test/Data Layer/APIRequests/OrderDetail/OrderDetail.swift`
-- `Wobitech Test/Data Layer/APIRequests/OrderList/OrderList.swift`
-
-Behavior:
-
-- `getOrderDetail(for:)`:
-  - Calls network with `OrderDetailRequest` (`/api/v1/orders/{orderID}`)
-  - Falls back to cached order list mapping when network fetch fails and cache exists
-- `streamOrderDetail(for:pollingInterval:)`:
-  - Polls every `10` seconds by default
-  - Swallows transient poll errors and keeps polling
-  - Does not terminate stream on temporary failures
-
-### Network Service
-File:
-
-- `Wobitech Test/Data Layer/APIRequests/Common/NetworkService.swift`
-
-Behavior:
-
-- Builds and executes requests from `APIRequest`
-- Decodes JSON with ISO-8601 dates
-- Throws typed `NetworkError` values
-
-## Testing
-Tests use Swift Testing (`import Testing`) under `Wobitech TestTests/`.
-
-### Data Layer
+Current test suites:
 
 - `Wobitech TestTests/DataLayerTests/NetworkServiceTests.swift`
-  - execute success/error paths
-  - stream polling behavior
-
-### Domain Layer
-
 - `Wobitech TestTests/DomainLayerTests/GetOrderListServiceTests.swift`
 - `Wobitech TestTests/DomainLayerTests/GetOrderDetailServiceTests.swift`
-  - detail fetch decoding/path behavior
-  - stream keeps polling after initial failure and eventually yields
-
-### Presentation Layer
-
 - `Wobitech TestTests/PresentationLayerTests/OrdersListViewModelTests.swift`
 - `Wobitech TestTests/PresentationLayerTests/OrderDetailsViewModelTests.swift`
-  - detail fetch success/error state transitions
-  - display model mapping
-  - streaming starts only for `PENDING`/`INTRANSIT`
-  - no streaming for `DELIVERED`
 
-### Test Helpers and Mocks
+What I intentionally did not complete due to time:
 
-- `Wobitech TestTests/Helpers and Mocks/MockURLProtocol.swift`
-- `Wobitech TestTests/Helpers and Mocks/MockRequests.swift`
-- `Wobitech TestTests/Helpers and Mocks/MockResponse.swift`
-- `Wobitech TestTests/Helpers and Mocks/MockGetOrderListService.swift`
-- `Wobitech TestTests/Helpers and Mocks/MockGetOrderDetailService.swift`
+- UI/snapshot testing was skipped.
+- Async stream polling tests in order details are partially covered but not as deeply as desired.
 
-## Build Tooling
-SwiftFormat and SwiftLint are configured to run on build.
+## Trade-offs Due To Time
+- I used `AsyncThrowingStream` + polling for status updates.  
+  Ideally, I would explore remote notifications/push-driven updates to reduce battery and data usage.
+- I used mocks extensively, but I could have used richer/randomized test data generators for faster scenario setup.
+- Localization was added recently. While centralized now, it is still string-key based and can still feel like replacing one magic string with another.
+- I would prefer a stronger typed localization approach (for example enum-backed localized keys/structures) to improve compile-time safety and injection patterns similar to API dependencies.
 
-Config files:
+## Safe Evolution
+If a new state like `CANCELLED` is introduced, expected change points are:
 
-- `.swiftformat`
-- `.swiftlint.yml`
+1. `OrderStatus` domain model update.
+2. Filtering/title/display mappings in view models.
+3. Strings/localization keys.
+4. Any stream/update rule that depends on active states.
 
-Install tools:
+What would likely break first:
+
+- switch exhaustiveness in mappings and filters
+- tests asserting known state sets
+
+How tests protect this:
+
+- existing state transition tests and mapping tests fail fast on missing handling paths.
+
+## How To Run
+Open in Xcode:
+
+1. Open `Wobitech Test.xcodeproj`.
+2. Run scheme `Wobitech Test` on iOS Simulator.
+3. Run tests with `Product > Test`.
+
+CLI (example):
+
+```sh
+xcodebuild test -scheme "Wobitech Test" -destination 'platform=iOS Simulator,name=iPhone 16'
+```
+
+## Future Improvements
+For production readiness, I would add:
+
+- real backend integration (replace mocked service)
+- offline caching and sync strategy
+- stronger error categorization and recovery UX
+- CI with pull request test checks
+- performance instrumentation
+- accessibility pass (VoiceOver labels, dynamic type, contrast audits)
+- feature flags for controlled rollout
+
+Thought exercise (no code implemented):
+
+- Real-time driver tracking would be added via a map module behind an abstraction boundary (protocol-based map adapter).
+- The map SDK integration would be isolated in infrastructure/presentation adapter layers so business logic and state remain testable without the SDK runtime.
+
+## Tooling
+SwiftFormat and SwiftLint are configured.
 
 ```sh
 brew install swiftformat swiftlint
-```
-
-Manual run:
-
-```sh
 swiftformat .
 swiftlint --fix
 swiftlint
