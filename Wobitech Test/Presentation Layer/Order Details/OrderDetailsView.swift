@@ -13,6 +13,43 @@ struct OrderDetailsView: View {
   }
 
   var body: some View {
+    stateContent
+      .navigationTitle("Order Details")
+      .onAppear(perform: viewModel.onAppear)
+      .onDisappear(perform: viewModel.onDisappear)
+      .alert(
+        "Unable to fetch order detail",
+        isPresented: Binding(
+          get: { viewModel.state == .error },
+          set: { isPresented in
+            if !isPresented {
+              viewModel.dismissError()
+            }
+          }
+        )
+      ) {
+        Button("Try Again") {
+          viewModel.retryFetch()
+        }
+        Button("Cancel", role: .cancel) {}
+      }
+  }
+
+  @ViewBuilder
+  private var stateContent: some View {
+    switch viewModel.state {
+    case .successful:
+      successfulStateView
+    case .loading:
+      loadingStateView
+    case .noData:
+      noDataStateView
+    case .error:
+      errorStateView
+    }
+  }
+
+  private var successfulStateView: some View {
     List {
       row("Order ID", value: viewModel.displayModel.orderID)
       row("Order", value: viewModel.displayModel.orderName)
@@ -34,24 +71,22 @@ struct OrderDetailsView: View {
         row("Driver", value: viewModel.displayModel.driverNameText)
       }
     }
-    .navigationTitle("Order Details")
-    .onAppear(perform: viewModel.onAppear)
-    .alert(
-      "Unable to fetch order detail",
-      isPresented: Binding(
-        get: { viewModel.state == .error },
-        set: { isPresented in
-          if !isPresented {
-            viewModel.dismissError()
-          }
-        }
-      )
-    ) {
-      Button("Try Again") {
-        viewModel.retryFetch()
-      }
-      Button("Cancel", role: .cancel) {}
-    }
+  }
+
+  private var loadingStateView: some View {
+    ProgressView()
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
+  }
+
+  private var noDataStateView: some View {
+    Text("Loading Data...")
+      .foregroundStyle(.secondary)
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
+  }
+
+  private var errorStateView: some View {
+    Color.clear
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
   }
 
   private func row(_ title: String, value: String) -> some View {

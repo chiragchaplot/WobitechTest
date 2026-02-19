@@ -24,6 +24,7 @@ final class OrderDetailsViewModel {
   private(set) var state: ScreenState
   private(set) var orderStatus: OrderStatus?
   private(set) var displayModel: OrderDetailsDisplayModel
+  private var detailUpdatesTask: Task<Void, Never>?
   var isOrderDelivered: Bool {
     orderStatus == .DELIVERED
   }
@@ -58,12 +59,15 @@ final class OrderDetailsViewModel {
   }
 
   func onAppear() {
-    if state != .successful {
-      fetchOrderDetail()
+    if state == .successful {
+      startStreamingIfNeeded()
+      return
     }
+    fetchOrderDetail()
   }
 
   func retryFetch() {
+    stopStreaming()
     fetchOrderDetail()
   }
 
@@ -71,6 +75,10 @@ final class OrderDetailsViewModel {
     if state == .error {
       state = .noData
     }
+  }
+
+  func onDisappear() {
+    stopStreaming()
   }
 
   private func fetchOrderDetail() {
@@ -85,14 +93,56 @@ final class OrderDetailsViewModel {
           self.orderStatus = detail.status
           self.displayModel = self.mapToDisplayModel(detail)
           self.state = .successful
+          self.startStreamingIfNeeded()
         }
       } catch {
         await MainActor.run {
+          self.stopStreaming()
           self.orderStatus = nil
           self.state = .error
         }
       }
     }
+  }
+
+  private func startStreamingIfNeeded() {
+    guard shouldObserveOrderUpdates else {
+      stopStreaming()
+      return
+    }
+
+    guard detailUpdatesTask == nil else { return }
+
+    detailUpdatesTask = Task {
+      let stream = await orderDetailService.streamOrderDetail(for: orderID, pollingInterval: 10)
+
+      do {
+        for try await latestDetail in stream {
+          await MainActor.run {
+            self.orderStatus = latestDetail.status
+            self.displayModel = self.mapToDisplayModel(latestDetail)
+
+            if !self.shouldObserveOrderUpdates {
+              self.stopStreaming()
+            }
+          }
+        }
+      } catch {
+        await MainActor.run {
+          self.stopStreaming()
+          self.state = .error
+        }
+      }
+    }
+  }
+
+  private func stopStreaming() {
+    detailUpdatesTask?.cancel()
+    detailUpdatesTask = nil
+  }
+
+  private var shouldObserveOrderUpdates: Bool {
+    orderStatus == .PENDING || orderStatus == .INTRANSIT
   }
 
   private func mapToDisplayModel(_ detail: OrderDetail) -> OrderDetailsDisplayModel {

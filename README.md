@@ -1,71 +1,155 @@
 # Wobitech Test
 
-## Architecture
-This app is structured with separate presentation, domain, and data layers.
+## Project Overview
+The app uses a clean layered structure:
 
-- App entry point: `Wobitech_TestApp` in `Wobitech Test/Wobitech_TestApp.swift`
-- Presentation layer:
-  - `HomeView` in `Wobitech Test/Presentation Layer/HomeView.swift`
-  - `OrdersListView` in `Wobitech Test/Presentation Layer/Orders List/OrdersListView.swift`
-  - `OrdersListViewModel` (`@Observable`) in `Wobitech Test/Presentation Layer/Orders List/OrdersListViewModel.swift`
-  - `OrderDetailsView` in `Wobitech Test/Presentation Layer/Order Details/OrderDetailsView.swift`
-  - `OrderDetailsViewModel` (`@Observable`) in `Wobitech Test/Presentation Layer/Order Details/OrderDetailsViewModel.swift`
-- Domain layer:
-  - `GetOrderListUseCase` protocol in `Wobitech Test/Domain Layer/GetOrderListService.swift`
-  - `GetOrderListService` actor with simulated API delay and success/failure toggle (`shouldSucceed`)
-- Data layer:
-  - `APIRequest` protocol + default URLRequest builder in `Wobitech Test/Data Layer/APIRequests/APIRequest.swift`
-  - `NetworkServiceProtocol` and `NetworkService` actor in `Wobitech Test/Data Layer/APIRequests/NetworkService.swift`
-  - Order entities in `Wobitech Test/Data Layer/APIRequests/OrderList.swift`
+- `Presentation Layer`: SwiftUI views + `@Observable` view models
+- `Domain Layer`: use-case/service actors
+- `Data Layer`: request models and shared network service
+
+Entry point:
+
+- `Wobitech Test/Wobitech_TestApp.swift`
+
+## Current User Flows
+
+### Orders List
+Files:
+
+- `Wobitech Test/Presentation Layer/Orders List/OrdersListView.swift`
+- `Wobitech Test/Presentation Layer/Orders List/OrdersListViewModel.swift`
+
+Behavior:
+
+- Fetches orders on first appear
+- Supports pull-to-refresh
+- Supports filter menu: `All`, `Pending`, `In Transit`, `Delivered`
+- Dynamic title includes filter and count
+- Screen state handling:
+  - `.loading`: progress view
+  - `.successful`: list + navigation to order details
+  - `.noData`: `Loading Data...`
+  - `.error`: alert with retry
+
+### Order Details
+Files:
+
+- `Wobitech Test/Presentation Layer/Order Details/OrderDetailsView.swift`
+- `Wobitech Test/Presentation Layer/Order Details/OrderDetailsViewModel.swift`
+- `Wobitech Test/Presentation Layer/Order Details/OrderDeliveredImageView.swift`
+
+Behavior:
+
+- List-to-details navigation passes only `orderID`
+- View model fetches detail through `GetOrderDetailUseCase`
+- UI is driven by `OrderDetailsDisplayModel`
+- Displays:
+  - Order ID, Order name
+  - From name, final delivery name
+  - From address, final address
+  - Status, start date
+  - Estimated delivery or delivered-at (based on status)
+  - Last location (for non-delivered)
+  - Driver (for pending pickup)
+- If status is delivered, shows delivered image from asset `deliveredPhoto` using a square reusable view
+
+## Services and Data
+
+### Order List Service
+File:
+
+- `Wobitech Test/Domain Layer/GetOrderListService.swift`
+
+Behavior:
+
+- Simulates API delay (`3` seconds)
+- Returns mock data when `shouldSucceed = true`
+- Throws `NetworkError.requestFailed(500)` when `shouldSucceed = false`
+- Caches latest fetched list for detail fallback
+
+### Order Detail Service
+File:
+
+- `Wobitech Test/Domain Layer/GetOrderDetailService.swift`
+
+Related request/models:
+
+- `Wobitech Test/Data Layer/APIRequests/OrderDetail/OrderDetailRequest.swift`
+- `Wobitech Test/Data Layer/APIRequests/OrderDetail/OrderDetail.swift`
+- `Wobitech Test/Data Layer/APIRequests/OrderList/OrderList.swift`
+
+Behavior:
+
+- `getOrderDetail(for:)`:
+  - Calls network with `OrderDetailRequest` (`/api/v1/orders/{orderID}`)
+  - Falls back to cached order list mapping when network fetch fails and cache exists
+- `streamOrderDetail(for:pollingInterval:)`:
+  - Polls every `10` seconds by default
+  - Swallows transient poll errors and keeps polling
+  - Does not terminate stream on temporary failures
+
+### Network Service
+File:
+
+- `Wobitech Test/Data Layer/APIRequests/Common/NetworkService.swift`
+
+Behavior:
+
+- Builds and executes requests from `APIRequest`
+- Decodes JSON with ISO-8601 dates
+- Throws typed `NetworkError` values
 
 ## Testing
-Unit tests use Swift Testing (`import Testing`) in `Wobitech TestTests/`.
+Tests use Swift Testing (`import Testing`) under `Wobitech TestTests/`.
 
-- Data layer tests:
-  - `Wobitech TestTests/DataLayerTests/NetworkServiceTests.swift` covers `NetworkService.execute` for:
-  - successful decoding (2xx)
-  - invalid request URL
-  - non-2xx HTTP status handling
-  - non-HTTP response handling
-  - decoding failures
-- Domain layer tests:
-  - `Wobitech TestTests/DomainLayerTests/GetOrderListServiceTests.swift` covers success and failure behavior of `GetOrderListService`
-- Presentation layer tests:
-  - `Wobitech TestTests/PresentationLayerTests/OrdersListViewModelTests.swift` covers state transitions, retry, pull-to-refresh behavior, and status filtering
-- Test helpers and mocks:
-  - `Wobitech TestTests/Helpers and Mocks/MockURLProtocol.swift`
-  - `Wobitech TestTests/Helpers and Mocks/MockRequests.swift`
-  - `Wobitech TestTests/Helpers and Mocks/MockResponse.swift`
-  - `Wobitech TestTests/Helpers and Mocks/MockGetOrderListService.swift`
+### Data Layer
 
-## Current Status
-- `HomeView` is a `TabView` with exactly 2 tabs:
-  - `Orders` tab (orders list)
-  - `Details` tab (order details)
-- Each tab is its own view and has its own `@Observable` view model.
-- `OrdersListView` supports pull-to-refresh and status-based filtering (All, Pending, In Transit, Delivered).
-- `OrdersListView` reacts to screen state:
-  - `successful`: shows list
-  - `loading`: shows progress view
-  - `noData`: shows “Loading Data...”
-  - `error`: shows retry alert
-- `GetOrderListService` currently simulates network behavior and returns mock data.
+- `Wobitech TestTests/DataLayerTests/NetworkServiceTests.swift`
+  - execute success/error paths
+  - stream polling behavior
 
-## Formatting and Linting
-SwiftFormat and SwiftLint are configured as Xcode build script phases on the `Wobitech Test` target and run on every build.
+### Domain Layer
 
-- SwiftFormat: `.swiftformat`
-- SwiftLint: `.swiftlint.yml`
+- `Wobitech TestTests/DomainLayerTests/GetOrderListServiceTests.swift`
+- `Wobitech TestTests/DomainLayerTests/GetOrderDetailServiceTests.swift`
+  - detail fetch decoding/path behavior
+  - stream keeps polling after initial failure and eventually yields
 
-Install tools with Homebrew:
+### Presentation Layer
+
+- `Wobitech TestTests/PresentationLayerTests/OrdersListViewModelTests.swift`
+- `Wobitech TestTests/PresentationLayerTests/OrderDetailsViewModelTests.swift`
+  - detail fetch success/error state transitions
+  - display model mapping
+  - streaming starts only for `PENDING`/`INTRANSIT`
+  - no streaming for `DELIVERED`
+
+### Test Helpers and Mocks
+
+- `Wobitech TestTests/Helpers and Mocks/MockURLProtocol.swift`
+- `Wobitech TestTests/Helpers and Mocks/MockRequests.swift`
+- `Wobitech TestTests/Helpers and Mocks/MockResponse.swift`
+- `Wobitech TestTests/Helpers and Mocks/MockGetOrderListService.swift`
+- `Wobitech TestTests/Helpers and Mocks/MockGetOrderDetailService.swift`
+
+## Build Tooling
+SwiftFormat and SwiftLint are configured to run on build.
+
+Config files:
+
+- `.swiftformat`
+- `.swiftlint.yml`
+
+Install tools:
 
 ```sh
 brew install swiftformat swiftlint
 ```
 
-Run them manually from the project root:
+Manual run:
 
 ```sh
 swiftformat .
 swiftlint --fix
+swiftlint
 ```

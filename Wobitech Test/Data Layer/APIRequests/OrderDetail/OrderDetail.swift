@@ -6,7 +6,7 @@
 
 import Foundation
 
-struct OrderDetail {
+struct OrderDetail: Decodable {
   var id: String
   var status: OrderStatus
   var name: String

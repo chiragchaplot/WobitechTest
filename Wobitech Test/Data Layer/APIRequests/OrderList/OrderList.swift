@@ -1,15 +1,15 @@
-////
+//
 //  OrderList.swift
 //  Wobitech Test by Chirag Chaplot
 //
 //  Created on 19/2/2026.
 import Foundation
 
-struct OrderList {
+struct OrderList: Decodable {
   var orders: [Order]
 }
 
-struct Order: Identifiable {
+struct Order: Identifiable, Decodable {
   var id: String
   var status: OrderStatus
   var name: String
@@ -35,7 +35,7 @@ struct Order: Identifiable {
   }()
 }
 
-enum OrderStatus: String, Equatable {
+enum OrderStatus: String, Equatable, Decodable {
   case PENDING
   case INTRANSIT
   case DELIVERED
