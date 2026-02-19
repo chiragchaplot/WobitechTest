@@ -3,9 +3,66 @@ import Observation
 
 @Observable
 final class OrdersListViewModel {
-  var orders: [Order] = [
-    Order(id: "1", status: .PENDING, name: "Order #1001", startDate: .now, estimatedDeliveryDate: .now.addingTimeInterval(86400), deliveryDate: nil),
-    Order(id: "2", status: .INTRANSIT, name: "Order #1002", startDate: .now.addingTimeInterval(-86400), estimatedDeliveryDate: .now.addingTimeInterval(172_800), deliveryDate: nil),
-    Order(id: "3", status: .DELIVERED, name: "Order #1003", startDate: .now.addingTimeInterval(-259_200), estimatedDeliveryDate: nil, deliveryDate: .now.addingTimeInterval(-86400))
-  ]
+  // MARK: Services
+
+  var orderListService: GetOrderListUseCase
+
+  // MARK: Properties
+
+  var user: String
+  private(set) var state: ScreenState
+
+  init(orderListService: GetOrderListUseCase = GetOrderListService.sharedInstance,
+       user: String = "Chirag") {
+    self.orderListService = orderListService
+    self.user = user
+    state = .noData
+  }
+
+  var orders: [Order] = []
+
+  func onAppear() {
+    if state != .successful, orders.isEmpty {
+      fetchOrders()
+    }
+  }
+
+  func retryFetch() {
+    fetchOrders()
+  }
+
+  func dismissError() {
+    if state == .error {
+      state = .noData
+    }
+  }
+
+  private func fetchOrders() {
+    Task {
+      await MainActor.run {
+        self.state = .loading
+      }
+
+      do {
+        let fetchedOrders = try await orderListService.getOrderList(for: user)
+        await MainActor.run {
+          self.processOrders(fetchedOrders: fetchedOrders)
+        }
+      } catch {
+        await MainActor.run {
+          self.handleErrors()
+        }
+      }
+    }
+  }
+
+  /// This method is generally added when viewModel needs to do any data transformation on retrieved information, if needed.
+  private func processOrders(fetchedOrders: OrderList) {
+    state = .successful
+    orders = fetchedOrders.orders
+  }
+
+  private func handleErrors() {
+    state = .error
+  }
 }

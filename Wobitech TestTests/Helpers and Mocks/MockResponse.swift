@@ -1,4 +1,4 @@
-////
+//
 //  MockResponse.swift
 //  Wobitech Test by Chirag Chaplot
 //
