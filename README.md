@@ -12,7 +12,7 @@ This app is structured with separate presentation, domain, and data layers.
   - `OrderDetailsViewModel` (`@Observable`) in `Wobitech Test/Presentation Layer/Order Details/OrderDetailsViewModel.swift`
 - Domain layer:
   - `GetOrderListUseCase` protocol in `Wobitech Test/Domain Layer/GetOrderListService.swift`
-  - `GetOrderListService` actor (currently returns an empty `OrderList` placeholder)
+  - `GetOrderListService` actor with simulated API delay and success/failure toggle (`shouldSucceed`)
 - Data layer:
   - `APIRequest` protocol + default URLRequest builder in `Wobitech Test/Data Layer/APIRequests/APIRequest.swift`
   - `NetworkServiceProtocol` and `NetworkService` actor in `Wobitech Test/Data Layer/APIRequests/NetworkService.swift`
@@ -21,24 +21,35 @@ This app is structured with separate presentation, domain, and data layers.
 ## Testing
 Unit tests use Swift Testing (`import Testing`) in `Wobitech TestTests/`.
 
-- `Wobitech TestTests/NetworkServiceTests.swift` covers `NetworkService.execute` for:
+- Data layer tests:
+  - `Wobitech TestTests/DataLayerTests/NetworkServiceTests.swift` covers `NetworkService.execute` for:
   - successful decoding (2xx)
   - invalid request URL
   - non-2xx HTTP status handling
   - non-HTTP response handling
   - decoding failures
+- Domain layer tests:
+  - `Wobitech TestTests/DomainLayerTests/GetOrderListServiceTests.swift` covers success and failure behavior of `GetOrderListService`
+- Presentation layer tests:
+  - `Wobitech TestTests/PresentationLayerTests/OrdersListViewModelTests.swift` covers state transitions, retry, pull-to-refresh behavior, and status filtering
 - Test helpers and mocks:
   - `Wobitech TestTests/Helpers and Mocks/MockURLProtocol.swift`
   - `Wobitech TestTests/Helpers and Mocks/MockRequests.swift`
   - `Wobitech TestTests/Helpers and Mocks/MockResponse.swift`
+  - `Wobitech TestTests/Helpers and Mocks/MockGetOrderListService.swift`
 
 ## Current Status
 - `HomeView` is a `TabView` with exactly 2 tabs:
   - `Orders` tab (orders list)
   - `Details` tab (order details)
 - Each tab is its own view and has its own `@Observable` view model.
-- Domain and data layers are in place, but not yet fully wired into the presentation layer.
-- `GetOrderListService` is currently a scaffold and does not call `NetworkService` yet.
+- `OrdersListView` supports pull-to-refresh and status-based filtering (All, Pending, In Transit, Delivered).
+- `OrdersListView` reacts to screen state:
+  - `successful`: shows list
+  - `loading`: shows progress view
+  - `noData`: shows “Loading Data...”
+  - `error`: shows retry alert
+- `GetOrderListService` currently simulates network behavior and returns mock data.
 
 ## Formatting and Linting
 SwiftFormat and SwiftLint are configured as Xcode build script phases on the `Wobitech Test` target and run on every build.

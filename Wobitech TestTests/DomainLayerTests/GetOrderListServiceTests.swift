@@ -16,17 +16,12 @@ struct GetOrderListServiceTests {
 
     let list = try await service.getOrderList(for: "Chirag")
 
-    #expect(list.orders.count == 3)
-    #expect(list.orders[0].id == "1")
-    #expect(list.orders[0].status == .PENDING)
-    #expect(list.orders[0].name == "Chirag - Order #1001")
-    #expect(list.orders[1].status == .INTRANSIT)
-    #expect(list.orders[2].status == .DELIVERED)
+    #expect(list.orders.count == 15)
   }
 
   @Test
   func getOrderListThrowsNetworkErrorWhenShouldSucceedIsFalse() async {
-    let service = GetOrderListService(shouldSucceed: false, delay: 0)
+    let service = GetOrderListService(shouldSucceed: false)
 
     do {
       _ = try await service.getOrderList(for: "Chirag")

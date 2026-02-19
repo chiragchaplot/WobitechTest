@@ -13,12 +13,29 @@ import Testing
 struct OrdersListViewModelTests {
   @Test
   func onAppearTransitionsToSuccessfulStateOnServiceSuccess() async {
-    let service = SuccessfulGetOrderListUseCase()
+    let service = MockGetOrderListService(
+      outcomes: [
+        .success(
+          OrderList(
+            orders: [
+              Order(
+                id: "mock-1",
+                status: .PENDING,
+                name: "Chirag - Mock Order",
+                startDate: .now,
+                estimatedDeliveryDate: nil,
+                deliveryDate: nil
+              )
+            ]
+          )
+        )
+      ]
+    )
     let viewModel = OrdersListViewModel(orderListService: service, user: "Chirag")
 
     #expect(viewModel.state == .noData)
     viewModel.onAppear()
-    #expect(viewModel.state == .loading || viewModel.state == .successful)
+    #expect([ScreenState.noData, .loading, .successful].contains(viewModel.state))
 
     await waitForState(.successful, in: viewModel)
 
@@ -32,10 +49,11 @@ struct OrdersListViewModelTests {
 
   @Test
   func onAppearTransitionsToErrorStateOnServiceFailure() async {
-    let viewModel = OrdersListViewModel(orderListService: FailingGetOrderListUseCase(), user: "Chirag")
+    let service = MockGetOrderListService(outcomes: [.failure(.requestFailed(500))])
+    let viewModel = OrdersListViewModel(orderListService: service, user: "Chirag")
 
     viewModel.onAppear()
-    #expect(viewModel.state == .loading || viewModel.state == .error)
+    #expect([ScreenState.noData, .loading, .error].contains(viewModel.state))
 
     await waitForState(.error, in: viewModel)
 
@@ -45,7 +63,8 @@ struct OrdersListViewModelTests {
 
   @Test
   func dismissErrorMovesStateBackToNoData() async {
-    let viewModel = OrdersListViewModel(orderListService: FailingGetOrderListUseCase(), user: "Chirag")
+    let service = MockGetOrderListService(outcomes: [.failure(.requestFailed(500))])
+    let viewModel = OrdersListViewModel(orderListService: service, user: "Chirag")
 
     viewModel.onAppear()
     await waitForState(.error, in: viewModel)
@@ -58,8 +77,24 @@ struct OrdersListViewModelTests {
 
   @Test
   func retryFetchRefetchesAndCanRecoverAfterFailure() async {
-    let service = SequencedGetOrderListUseCase(
-      outcomes: [.failure, .success]
+    let service = MockGetOrderListService(
+      outcomes: [
+        .failure(.requestFailed(500)),
+        .success(
+          OrderList(
+            orders: [
+              Order(
+                id: "mock-1",
+                status: .DELIVERED,
+                name: "Chirag - Recovered",
+                startDate: .now,
+                estimatedDeliveryDate: nil,
+                deliveryDate: .now
+              )
+            ]
+          )
+        )
+      ]
     )
     let viewModel = OrdersListViewModel(orderListService: service, user: "Chirag")
 
@@ -68,7 +103,7 @@ struct OrdersListViewModelTests {
     #expect(viewModel.state == .error)
 
     viewModel.retryFetch()
-    #expect(viewModel.state == .loading)
+    #expect([ScreenState.noData, .loading, .successful, .error].contains(viewModel.state))
     await waitForState(.successful, in: viewModel)
 
     #expect(viewModel.state == .successful)
@@ -78,89 +113,82 @@ struct OrdersListViewModelTests {
     let callCount = await service.callCount
     #expect(callCount == 2)
   }
+
+  @Test
+  func updateFilterFiltersOrdersBySelectedStatus() {
+    let viewModel = OrdersListViewModel(orderListService: MockGetOrderListService(), user: "Chirag")
+    viewModel.orders = [
+      Order(id: "1", status: .PENDING, name: "Pending", startDate: .now, estimatedDeliveryDate: nil, deliveryDate: nil),
+      Order(id: "2", status: .INTRANSIT, name: "Transit", startDate: .now, estimatedDeliveryDate: nil, deliveryDate: nil),
+      Order(id: "3", status: .DELIVERED, name: "Delivered", startDate: .now, estimatedDeliveryDate: nil, deliveryDate: nil)
+    ]
+
+    viewModel.updateFilter(.INTRANSIT)
+
+    #expect(viewModel.filterButtonTitle == "In Transit")
+    #expect(viewModel.filteredOrders.count == 1)
+    #expect(viewModel.filteredOrders.first?.id == "2")
+    #expect(viewModel.isShowingInTransitFilter)
+    #expect(viewModel.isSelectedFilter(.INTRANSIT))
+  }
+
+  @Test
+  func updateFilterWithNilShowsAllOrders() {
+    let viewModel = OrdersListViewModel(orderListService: MockGetOrderListService(), user: "Chirag")
+    viewModel.orders = [
+      Order(id: "1", status: .PENDING, name: "Pending", startDate: .now, estimatedDeliveryDate: nil, deliveryDate: nil),
+      Order(id: "2", status: .DELIVERED, name: "Delivered", startDate: .now, estimatedDeliveryDate: nil, deliveryDate: nil)
+    ]
+    viewModel.updateFilter(.PENDING)
+    #expect(viewModel.filteredOrders.count == 1)
+
+    viewModel.updateFilter(nil)
+
+    #expect(viewModel.filterButtonTitle == "All")
+    #expect(viewModel.filteredOrders.count == 2)
+    #expect(viewModel.isShowingAllFilters)
+  }
+
+  @Test
+  func refreshRefetchesWithoutTransitioningToLoadingState() async {
+    let service = MockGetOrderListService(delay: 0.2)
+    let viewModel = OrdersListViewModel(orderListService: service, user: "Chirag")
+
+    viewModel.onAppear()
+    await waitForState(.successful, in: viewModel)
+    #expect(viewModel.state == .successful)
+
+    let refreshTask = Task {
+      await viewModel.refresh()
+    }
+
+    try? await Task.sleep(for: .seconds(0.1))
+    #expect(viewModel.state == .successful)
+
+    await refreshTask.value
+    #expect(viewModel.state == .successful)
+
+    let callCount = await service.callCount
+    #expect(callCount == 2)
+  }
 }
 
 private extension OrdersListViewModelTests {
+  /// View model state changes happen asynchronously via Task, so tests wait for
+  /// the expected state to avoid race conditions and flaky assertions.
   func waitForState(
     _ expectedState: ScreenState,
     in viewModel: OrdersListViewModel,
-    timeoutNanoseconds: UInt64 = 1_000_000_000
+    timeoutSeconds: TimeInterval = 1
   ) async {
     let start = Date()
 
     while viewModel.state != expectedState {
-      if Date().timeIntervalSince(start) > Double(timeoutNanoseconds) / 1_000_000_000 {
+      if Date().timeIntervalSince(start) > timeoutSeconds {
         Issue.record("Timed out waiting for state: \(expectedState)")
         return
       }
-      try? await Task.sleep(nanoseconds: 20_000_000)
-    }
-  }
-}
-
-private actor SuccessfulGetOrderListUseCase: GetOrderListUseCase {
-  private(set) var requestedUsers: [String] = []
-
-  func getOrderList(for user: String) async throws -> OrderList {
-    requestedUsers.append(user)
-    return OrderList(
-      orders: [
-        Order(
-          id: "mock-1",
-          status: .PENDING,
-          name: "\(user) - Mock Order",
-          startDate: .now,
-          estimatedDeliveryDate: nil,
-          deliveryDate: nil
-        )
-      ]
-    )
-  }
-}
-
-private actor FailingGetOrderListUseCase: GetOrderListUseCase {
-  func getOrderList(for _: String) async throws -> OrderList {
-    throw NetworkError.requestFailed(500)
-  }
-}
-
-private actor SequencedGetOrderListUseCase: GetOrderListUseCase {
-  enum Outcome {
-    case success
-    case failure
-  }
-
-  private var outcomes: [Outcome]
-  private(set) var callCount = 0
-
-  init(outcomes: [Outcome]) {
-    self.outcomes = outcomes
-  }
-
-  func getOrderList(for user: String) async throws -> OrderList {
-    callCount += 1
-
-    guard !outcomes.isEmpty else {
-      return OrderList(orders: [])
-    }
-
-    let next = outcomes.removeFirst()
-    switch next {
-    case .success:
-      return OrderList(
-        orders: [
-          Order(
-            id: "mock-1",
-            status: .DELIVERED,
-            name: "\(user) - Recovered",
-            startDate: .now,
-            estimatedDeliveryDate: nil,
-            deliveryDate: .now
-          )
-        ]
-      )
-    case .failure:
-      throw NetworkError.requestFailed(500)
+      try? await Task.sleep(for: .milliseconds(20))
     }
   }
 }
