@@ -6,30 +6,15 @@ struct OrdersListView: View {
   var body: some View {
     NavigationStack {
       stateContent
-        .navigationTitle("Orders")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-          ToolbarItem(placement: .topBarTrailing) {
-            Menu {
-              Button {
-                viewModel.updateFilter(nil)
-              } label: {
-                Label("All", systemImage: viewModel.isShowingAllFilters ? "checkmark" : "")
-              }
-
-              ForEach(viewModel.availableFilters, id: \.rawValue) { status in
-                Button {
-                  viewModel.updateFilter(status)
-                } label: {
-                  Label(
-                    status.displayTitle,
-                    systemImage: viewModel.isSelectedFilter(status) ? "checkmark" : ""
-                  )
-                }
-              }
-            } label: {
-              Label("Filter: \(viewModel.filterButtonTitle)", systemImage: "line.3.horizontal.decrease.circle")
-            }
+          ToolbarItem(placement: .principal) {
+            Text(viewModel.screenTitle)
+              .font(.headline)
+              .lineLimit(2)
+              .minimumScaleFactor(0.7)
           }
+          OrdersFilterToolbar(viewModel: viewModel)
         }
     }
     .onAppear(perform: viewModel.onAppear)
@@ -69,7 +54,11 @@ struct OrdersListView: View {
 
   private var successfulStateView: some View {
     List(viewModel.filteredOrders, id: \.id) { order in
-      OrdersListItemView(order: order)
+      NavigationLink {
+        OrderDetailsView(orderID: order.id)
+      } label: {
+        OrdersListItemView(order: order)
+      }
     }
     .refreshable {
       await viewModel.refresh()
@@ -97,15 +86,50 @@ struct OrdersListView: View {
   OrdersListView(viewModel: OrdersListViewModel())
 }
 
-private extension OrderStatus {
-  var displayTitle: String {
-    switch self {
-    case .PENDING:
-      "Pending"
-    case .INTRANSIT:
-      "In Transit"
-    case .DELIVERED:
-      "Delivered"
+private struct OrdersFilterToolbar: ToolbarContent {
+  var viewModel: OrdersListViewModel
+
+  var body: some ToolbarContent {
+    ToolbarItem(placement: .topBarTrailing) {
+      OrdersFilterMenu(viewModel: viewModel)
+    }
+  }
+}
+
+private struct OrdersFilterMenu: View {
+  var viewModel: OrdersListViewModel
+
+  var body: some View {
+    Menu {
+      OrdersFilterMenuButton(
+        title: "All",
+        isSelected: viewModel.isShowingAllFilters
+      ) {
+        viewModel.updateFilter(nil)
+      }
+
+      ForEach(viewModel.availableFilters, id: \.rawValue) { status in
+        OrdersFilterMenuButton(
+          title: viewModel.statusDisplayTitle(status),
+          isSelected: viewModel.isSelectedFilter(status)
+        ) {
+          viewModel.updateFilter(status)
+        }
+      }
+    } label: {
+      Label("Filter: \(viewModel.filterButtonTitle)", systemImage: "line.3.horizontal.decrease.circle")
+    }
+  }
+}
+
+private struct OrdersFilterMenuButton: View {
+  let title: String
+  let isSelected: Bool
+  let action: () -> Void
+
+  var body: some View {
+    Button(action: action) {
+      Label(title, systemImage: isSelected ? "checkmark" : "")
     }
   }
 }

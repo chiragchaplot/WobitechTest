@@ -18,10 +18,10 @@ struct HomeView: View {
           Label("Orders", systemImage: "list.bullet")
         }
 
-      OrderDetailsView(viewModel: orderDetailsViewModel)
-        .tabItem {
-          Label("Details", systemImage: "doc.text.magnifyingglass")
-        }
+//      OrderDetailsView(viewModel: orderDetailsViewModel)
+//        .tabItem {
+//          Label("Details", systemImage: "doc.text.magnifyingglass")
+//        }
     }
   }
 }

@@ -126,6 +126,7 @@ struct OrdersListViewModelTests {
     viewModel.updateFilter(.INTRANSIT)
 
     #expect(viewModel.filterButtonTitle == "In Transit")
+    #expect(viewModel.screenTitle == "Orders - In Transit (1)")
     #expect(viewModel.filteredOrders.count == 1)
     #expect(viewModel.filteredOrders.first?.id == "2")
     #expect(viewModel.isShowingInTransitFilter)
@@ -145,8 +146,40 @@ struct OrdersListViewModelTests {
     viewModel.updateFilter(nil)
 
     #expect(viewModel.filterButtonTitle == "All")
+    #expect(viewModel.screenTitle == "Orders (2)")
     #expect(viewModel.filteredOrders.count == 2)
     #expect(viewModel.isShowingAllFilters)
+  }
+
+  @Test
+  func screenTitleUsesExpectedTextForEachFilterWithCount() {
+    let viewModel = OrdersListViewModel(orderListService: MockGetOrderListService(), user: "Chirag")
+    viewModel.orders = [
+      Order(id: "1", status: .PENDING, name: "Pending", startDate: .now, estimatedDeliveryDate: nil, deliveryDate: nil),
+      Order(id: "2", status: .INTRANSIT, name: "Transit", startDate: .now, estimatedDeliveryDate: nil, deliveryDate: nil),
+      Order(id: "3", status: .DELIVERED, name: "Delivered", startDate: .now, estimatedDeliveryDate: nil, deliveryDate: nil)
+    ]
+
+    viewModel.updateFilter(nil)
+    #expect(viewModel.screenTitle == "Orders (3)")
+
+    viewModel.updateFilter(.INTRANSIT)
+    #expect(viewModel.screenTitle == "Orders - In Transit (1)")
+
+    viewModel.updateFilter(.PENDING)
+    #expect(viewModel.screenTitle == "Pending Pick Up (1)")
+
+    viewModel.updateFilter(.DELIVERED)
+    #expect(viewModel.screenTitle == "Delivered (1)")
+  }
+
+  @Test
+  func statusDisplayTitleReturnsExpectedTextForEachStatus() {
+    let viewModel = OrdersListViewModel(orderListService: MockGetOrderListService(), user: "Chirag")
+
+    #expect(viewModel.statusDisplayTitle(.PENDING) == "Pending")
+    #expect(viewModel.statusDisplayTitle(.INTRANSIT) == "In Transit")
+    #expect(viewModel.statusDisplayTitle(.DELIVERED) == "Delivered")
   }
 
   @Test

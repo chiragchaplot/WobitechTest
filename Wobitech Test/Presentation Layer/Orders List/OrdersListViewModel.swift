@@ -80,14 +80,11 @@ final class OrdersListViewModel {
 
   var filterButtonTitle: String {
     guard let selectedStatusFilter else { return "All" }
-    switch selectedStatusFilter {
-    case .PENDING:
-      return "Pending"
-    case .INTRANSIT:
-      return "In Transit"
-    case .DELIVERED:
-      return "Delivered"
-    }
+    return statusDisplayTitle(selectedStatusFilter)
+  }
+
+  var screenTitle: String {
+    "\(baseScreenTitle) (\(filteredOrders.count))"
   }
 
   var availableFilters: [OrderStatus] {
@@ -122,6 +119,29 @@ final class OrdersListViewModel {
       isShowingInTransitFilter
     case .DELIVERED:
       isShowingDeliveredFilter
+    }
+  }
+
+  func statusDisplayTitle(_ status: OrderStatus) -> String {
+    switch status {
+    case .PENDING:
+      "Pending"
+    case .INTRANSIT:
+      "In Transit"
+    case .DELIVERED:
+      "Delivered"
+    }
+  }
+
+  private var baseScreenTitle: String {
+    guard let selectedStatusFilter else { return "Orders" }
+    switch selectedStatusFilter {
+    case .PENDING:
+      return "Orders - Pending Pick Up"
+    case .INTRANSIT:
+      return "Orders - In Transit"
+    case .DELIVERED:
+      return "Orders - Delivered"
     }
   }
 

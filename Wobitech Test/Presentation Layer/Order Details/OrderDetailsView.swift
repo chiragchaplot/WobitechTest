@@ -3,17 +3,24 @@ import SwiftUI
 struct OrderDetailsView: View {
   var viewModel: OrderDetailsViewModel
 
+  init(orderID: String) {
+    viewModel = OrderDetailsViewModel(orderID: orderID)
+  }
+
+  init(viewModel: OrderDetailsViewModel) {
+    self.viewModel = viewModel
+  }
+
   var body: some View {
-    NavigationStack {
-      List {
-        row("Order", value: viewModel.orderName)
-        row("Status", value: viewModel.status.rawValue)
-        row("Start Date", value: viewModel.startDate.formatted(date: .abbreviated, time: .shortened))
-        row("Estimated Delivery", value: formatted(viewModel.estimatedDeliveryDate))
-        row("Delivered At", value: formatted(viewModel.deliveryDate))
-      }
-      .navigationTitle("Order Details")
+    List {
+      row("Order ID", value: viewModel.orderID)
+      row("Order", value: viewModel.orderName)
+      row("Status", value: viewModel.status.rawValue)
+      row("Start Date", value: viewModel.startDate.formatted(date: .abbreviated, time: .shortened))
+      row("Estimated Delivery", value: formatted(viewModel.estimatedDeliveryDate))
+      row("Delivered At", value: formatted(viewModel.deliveryDate))
     }
+    .navigationTitle("Order Details")
   }
 
   private func formatted(_ date: Date?) -> String {
@@ -33,5 +40,7 @@ struct OrderDetailsView: View {
 }
 
 #Preview {
-  OrderDetailsView(viewModel: OrderDetailsViewModel())
+  NavigationStack {
+    OrderDetailsView(orderID: "mock-1")
+  }
 }
