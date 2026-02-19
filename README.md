@@ -1,5 +1,12 @@
 # Wobitech Test
 
+## Demo
+
+
+https://github.com/user-attachments/assets/3a40b8b9-7eee-450d-9868-b8004d65c315
+
+
+
 ## Architecture
 I used a hybrid of Clean Architecture + SOLID + MVVM because of time and clarity.
 
