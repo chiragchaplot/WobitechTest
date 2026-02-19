@@ -1,4 +1,4 @@
 --swiftversion 5.9
---indent 4
+--indent 2
 --linebreaks lf
 --exclude Carthage,Pods,build,DerivedData

@@ -41,7 +41,7 @@ Unit tests use Swift Testing (`import Testing`) in `Wobitech TestTests/`.
 - `GetOrderListService` is currently a scaffold and does not call `NetworkService` yet.
 
 ## Formatting and Linting
-Configuration files are present:
+SwiftFormat and SwiftLint are configured as Xcode build script phases on the `Wobitech Test` target and run on every build.
 
 - SwiftFormat: `.swiftformat`
 - SwiftLint: `.swiftlint.yml`

@@ -107,6 +107,8 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 05BF57C12F458A4800084459 /* Build configuration list for PBXNativeTarget "Wobitech Test" */;
 			buildPhases = (
+				05BF57D02F46BE2E00084459 /* SwiftFormat */,
+				05BF57D12F46BE2E00084459 /* SwiftLint */,
 				05BF579B2F458A4600084459 /* Sources */,
 				05BF579C2F458A4600084459 /* Frameworks */,
 				05BF579D2F458A4600084459 /* Resources */,
@@ -239,6 +241,47 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		05BF57D02F46BE2E00084459 /* SwiftFormat */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = SwiftFormat;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if command -v swiftformat >/dev/null 2>&1; then\n  swiftformat \"$SRCROOT\"\nelse\n  echo \"error: SwiftFormat is not installed. Run: brew install swiftformat\"\n  exit 1\nfi\n";
+		};
+		05BF57D12F46BE2E00084459 /* SwiftLint */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = SwiftLint;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if command -v swiftlint >/dev/null 2>&1; then\n  cd \"$SRCROOT\" || exit 1\n  swiftlint --fix\nelse\n  echo \"error: SwiftLint is not installed. Run: brew install swiftlint\"\n  exit 1\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		05BF579B2F458A4600084459 /* Sources */ = {
@@ -429,6 +472,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				XROS_DEPLOYMENT_TARGET = 2.5;
 			};
 			name = Debug;
@@ -468,6 +512,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				XROS_DEPLOYMENT_TARGET = 2.5;
 			};
 			name = Release;

@@ -7,14 +7,13 @@
 import Foundation
 
 protocol GetOrderListUseCase: AnyObject {
-    func getOrderList(for user: String) async throws -> OrderList
+  func getOrderList(for user: String) async throws -> OrderList
 }
 
 actor GetOrderListService: GetOrderListUseCase {
-    static let sharedInstance = GetOrderListService()
-    
-    func getOrderList(for user: String) async throws -> OrderList {
-        var orderList: OrderList = OrderList(orders: [])
-        return orderList
-    }
+  static let sharedInstance = GetOrderListService()
+
+  func getOrderList(for _: String) async throws -> OrderList {
+    OrderList(orders: [])
+  }
 }

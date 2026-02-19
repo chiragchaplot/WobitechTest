@@ -6,19 +6,19 @@
 import Foundation
 
 struct OrderList {
-    var orders: [Order]
+  var orders: [Order]
 }
 
 struct Order {
-    var status: OrderStatus
-    var name: String
-    var startDate: Date
-    var estimatedDeliveryDate: Date?
-    var deliveryDate: Date?
+  var status: OrderStatus
+  var name: String
+  var startDate: Date
+  var estimatedDeliveryDate: Date?
+  var deliveryDate: Date?
 }
 
 enum OrderStatus: String, Equatable {
-    case `PENDING`
-    case `INTRANSIT`
-    case `DELIVERED`
+  case PENDING
+  case INTRANSIT
+  case DELIVERED
 }
