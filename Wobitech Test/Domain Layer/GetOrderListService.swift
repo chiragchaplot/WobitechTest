@@ -14,6 +14,7 @@ protocol GetOrderListUseCase: AnyObject {
 actor GetOrderListService: GetOrderListUseCase {
   static let sharedInstance = GetOrderListService()
   var shouldSucceed: Bool
+  private(set) var cachedOrderList: OrderList = .init(orders: [])
 
   init(
     shouldSucceed: Bool = true
@@ -27,6 +28,12 @@ actor GetOrderListService: GetOrderListUseCase {
     guard shouldSucceed else {
       throw NetworkError.requestFailed(500)
     }
-    return OrderList(orders: Order.mockOrders)
+    let fetchedList = OrderList(orders: Order.mockOrders)
+    cachedOrderList = fetchedList
+    return fetchedList
+  }
+
+  func getCachedOrder(by orderID: String) -> Order? {
+    cachedOrderList.orders.first(where: { $0.id == orderID })
   }
 }

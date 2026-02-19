@@ -7,13 +7,32 @@
 import Foundation
 
 protocol GetOrderDetailUseCase: AnyObject {
-  func getOrderList(for user: String) async throws -> OrderList
+  func getOrderDetail(for orderID: String) async throws -> OrderDetail
 }
 
-actor GetOrderDetailService: GetOrderListUseCase {
-  static let sharedInstance = GetOrderListService()
+actor GetOrderDetailService: GetOrderDetailUseCase {
+  static let sharedInstance = GetOrderDetailService()
+  private let orderListService: GetOrderListService
 
-  func getOrderList(for _: String) async throws -> OrderList {
-    OrderList(orders: [])
+  init(orderListService: GetOrderListService = .sharedInstance) {
+    self.orderListService = orderListService
+  }
+
+  func getOrderDetail(for orderID: String) async throws -> OrderDetail {
+    guard let order = await orderListService.getCachedOrder(by: orderID) else {
+      throw NetworkError.requestFailed(404)
+    }
+
+    return OrderDetail(
+      id: order.id,
+      status: order.status,
+      name: order.name,
+      startDate: order.startDate,
+      estimatedDeliveryDate: order.estimatedDeliveryDate,
+      deliveryDate: order.deliveryDate,
+      lastLocation: "",
+      driverName: "",
+      deliveryPhoto: nil
+    )
   }
 }

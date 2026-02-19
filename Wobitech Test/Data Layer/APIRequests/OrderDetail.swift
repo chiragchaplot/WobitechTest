@@ -17,4 +17,3 @@ struct OrderDetail {
   var driverName: String
   var deliveryPhoto: Data?
 }
-

@@ -7,25 +7,41 @@ struct OrderDetailsView: View {
     viewModel = OrderDetailsViewModel(orderID: orderID)
   }
 
-  init(viewModel: OrderDetailsViewModel) {
-    self.viewModel = viewModel
-  }
-
   var body: some View {
     List {
-      row("Order ID", value: viewModel.orderID)
-      row("Order", value: viewModel.orderName)
-      row("Status", value: viewModel.status.rawValue)
-      row("Start Date", value: viewModel.startDate.formatted(date: .abbreviated, time: .shortened))
-      row("Estimated Delivery", value: formatted(viewModel.estimatedDeliveryDate))
-      row("Delivered At", value: formatted(viewModel.deliveryDate))
+      row("Order ID", value: viewModel.displayModel.orderID)
+      row("Order", value: viewModel.displayModel.orderName)
+      row("Status", value: viewModel.displayModel.statusText)
+      row("Start Date", value: viewModel.displayModel.startDateText)
+
+      if viewModel.isOrderDelivered {
+        row("Delivered At", value: viewModel.displayModel.deliveredAtText)
+      } else {
+        row("Estimated Delivery", value: viewModel.displayModel.estimatedDeliveryText)
+      }
+      row("Last Location", value: viewModel.displayModel.lastLocationText)
+      if viewModel.isOrderPendingPickUp {
+        row("Driver", value: viewModel.displayModel.driverNameText)
+      }
     }
     .navigationTitle("Order Details")
-  }
-
-  private func formatted(_ date: Date?) -> String {
-    guard let date else { return "N/A" }
-    return date.formatted(date: .abbreviated, time: .shortened)
+    .onAppear(perform: viewModel.onAppear)
+    .alert(
+      "Unable to fetch order detail",
+      isPresented: Binding(
+        get: { viewModel.state == .error },
+        set: { isPresented in
+          if !isPresented {
+            viewModel.dismissError()
+          }
+        }
+      )
+    ) {
+      Button("Try Again") {
+        viewModel.retryFetch()
+      }
+      Button("Cancel", role: .cancel) {}
+    }
   }
 
   private func row(_ title: String, value: String) -> some View {
